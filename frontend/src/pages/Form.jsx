@@ -100,7 +100,9 @@ const Form = () => {
   }}>
       <div className="backdrop-blur-sm w-full max-w-md p-6 shadow-2xl rounded-lg">
         <div className="flex flex-col items-center">
-          <img src={logo} alt="Logo Diskominfo" className="h-16 mb-4" />
+          <a href="/login">
+            <img src={logo} alt="Logo Diskominfo" className="h-16 mb-4" />
+          </a>
           <h1 className="text-xl font-bold text-center text-white">BUKU TAMU DIGITAL</h1>
         </div>
         <form onSubmit={handleSubmit} className="mt-6">
