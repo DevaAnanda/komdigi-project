@@ -17,8 +17,7 @@ const PORT = process.env.PORT || 5000
 app.use(cors());
 app.use(bodyParser.json());
 app.use(cors({
-  origin: 'https://komdigi-project-azure.vercel.app/', // Ganti dengan URL frontend Anda
-  // origin: 'https://komdigi-project-khh6.vercel.app/', // Ganti dengan URL frontend Anda
+  origin: 'https://komdigi-project-azure.vercel.app', // Ganti dengan URL frontend Anda
 }));
 
 // Koneksi ke MongoDB
