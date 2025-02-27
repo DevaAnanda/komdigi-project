@@ -88,7 +88,7 @@ const Form = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
-      const response = await axios.post('http://localhost:5000/api/register-guest', formData);
+      const response = await axios.post('https://komdigi-project-backend.vercel.app/api/register-guest', formData);
       console.log(response.data);
       navigate('/trimakasih');
     }catch (error){
