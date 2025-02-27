@@ -247,7 +247,7 @@ const AdminDashboard = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await axios.get('/api/profile', {
+        const response = await axios.get('https://komdigi-project-backend.vercel.app/api/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -265,7 +265,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchEntries = async () => {
       try {
-        const response = await axios.get('/api/entries', {
+        const response = await axios.get('https://komdigi-project-backend.vercel.app/api/entries', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -344,7 +344,7 @@ const AdminDashboard = () => {
           throw new Error('No authentication token found');
         }
   
-        await axios.delete(`/api/entries/${id}`, {
+        await axios.delete(`https://komdigi-project-backend.vercel.app/api/entries/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
