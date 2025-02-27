@@ -57,47 +57,70 @@ const AdminDashboard = () => {
   };
 
   const getDataByPeriod = (data, period) => {
+    // Ensure data is an array
     if (!Array.isArray(data)) {
       console.error('Data is not an array:', data);
       return { umum: 0, dinas: 0 };
     }
-
+    
     const now = new Date();
     const filteredData = data.filter(entry => {
+      // Check if entry and entry.tanggal exist
       if (!entry || !entry.tanggal) return false;
+      
       const entryDate = new Date(entry.tanggal);
       switch (period) {
         case 'hari':{
           return entryDate.toDateString() === now.toDateString();
         }
         case 'minggu':{
-
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           return entryDate >= weekAgo;
         }
         case 'bulan':{
-
           return (
             entryDate.getMonth() === now.getMonth() &&
             entryDate.getFullYear() === now.getFullYear()
           );
         }
-          case 'tahun':{
-            return entryDate.getFullYear() === now.getFullYear();
-          }
-            default:{
-              return true;
-            }
-            }
+        case 'tahun':{
+          return entryDate.getFullYear() === now.getFullYear();
+        }
+        default:{
+          return true;
+        }
+      }
     });
 
     return {
-      umum: filteredData.filter(entry => entry.kategori === 'UMUM').length,
-      dinas: filteredData.filter(entry => entry.kategori === 'DINAS').length
+      umum: filteredData.filter(entry => entry && entry.kategori === 'UMUM').length,
+      dinas: filteredData.filter(entry => entry && entry.kategori === 'DINAS').length
     };
   };
 
   const getBarChartData = () => {
+    // Ensure entries is an array before processing
+    if (!Array.isArray(entries)) {
+      return {
+        labels: ['UMUM', 'DINAS'],
+        datasets: [
+          {
+            label: `Jumlah Entri per Kategori (${barChartPeriod})`,
+            data: [0, 0],
+            backgroundColor: [
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+            ],
+            borderColor: [
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+            ],
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+    
     const periodData = getDataByPeriod(entries, barChartPeriod);
     return {
       labels: ['UMUM', 'DINAS'],
@@ -120,6 +143,27 @@ const AdminDashboard = () => {
   };
 
   const getPieChartData = () => {
+    // Ensure entries is an array before processing
+    if (!Array.isArray(entries)) {
+      return {
+        labels: ['UMUM', 'DINAS'],
+        datasets: [
+          {
+            data: [0, 0],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+            ],
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
+    
     const periodData = getDataByPeriod(entries, pieChartPeriod);
     return {
       labels: ['UMUM', 'DINAS'],
@@ -226,15 +270,24 @@ const AdminDashboard = () => {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-      
-        console.log('Fetched entries:', response.data);
+    
+        console.log('Fetched entries:', response.data); // Log data yang diterima
         
-        // Add validation here
+        // Ensure we're working with an array
         const entriesData = Array.isArray(response.data) ? response.data : [];
-        setEntries(entriesData);
-        setFilteredEntries(entriesData);
+        
+        // Format dates properly
+        const formattedEntries = entriesData.map(entry => ({
+          ...entry,
+          // Ensure tanggal is a proper Date object or ISO string
+          tanggal: entry.tanggal ? entry.tanggal : new Date().toISOString()
+        }));
+        
+        setEntries(formattedEntries);
+        setFilteredEntries(formattedEntries);
       } catch (error) {
         console.error('Error fetching entries:', error);
+        // Set empty arrays to prevent rendering errors
         setEntries([]);
         setFilteredEntries([]);
       }
@@ -244,22 +297,37 @@ const AdminDashboard = () => {
   }, []);
   
   const filterEntries = () => {
-    let filtered = entries;
+    // Ensure entries is an array
+    if (!Array.isArray(entries)) {
+      console.error('Entries is not an array:', entries);
+      setFilteredEntries([]);
+      return;
+    }
+    
+    let filtered = [...entries];
   
     if (category) {
-      filtered = filtered.filter(entry => entry.kategori.toLowerCase() === category.toLowerCase());
+      filtered = filtered.filter(entry => 
+        entry && entry.kategori && entry.kategori.toLowerCase() === category.toLowerCase()
+      );
     }
+    
     if (startDate) {
-      filtered = filtered.filter(entry => new Date(entry.tanggal) >= new Date(startDate));
+      filtered = filtered.filter(entry => 
+        entry && entry.tanggal && new Date(entry.tanggal) >= new Date(startDate)
+      );
     }
+    
     if (endDate) {
-      filtered = filtered.filter(entry => new Date(entry.tanggal) <= new Date(endDate));
+      filtered = filtered.filter(entry => 
+        entry && entry.tanggal && new Date(entry.tanggal) <= new Date(endDate)
+      );
     }
   
     if (searchQuery) {
       filtered = filtered.filter(entry => 
-        entry.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        entry.tujuan.toLowerCase().includes(searchQuery.toLowerCase())
+        (entry && entry.nama && entry.nama.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (entry && entry.tujuan && entry.tujuan.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
   
@@ -282,8 +350,17 @@ const AdminDashboard = () => {
           }
         });
         
-        setEntries(prevEntries => prevEntries.filter(entry => entry._id !== id));
-        setFilteredEntries(prevFilteredEntries => prevFilteredEntries.filter(entry => entry._id !== id));
+        // Make sure entries is an array before filtering
+        if (Array.isArray(entries)) {
+          setEntries(prevEntries => prevEntries.filter(entry => entry && entry._id !== id));
+        }
+        
+        // Make sure filteredEntries is an array before filtering
+        if (Array.isArray(filteredEntries)) {
+          setFilteredEntries(prevFilteredEntries => 
+            prevFilteredEntries.filter(entry => entry && entry._id !== id)
+          );
+        }
         
       } catch (error) {
         console.error('Error deleting entry:', error);
@@ -302,12 +379,19 @@ const AdminDashboard = () => {
   };
 
   const getMonthlyData = () => {
+    // Ensure entries is an array
+    if (!Array.isArray(entries)) {
+      return Array(12).fill(0);
+    }
+    
     const monthlyData = Array(12).fill(0); // Array to hold total guests for each month (0-11)
   
     entries.forEach(entry => {
-      const entryDate = new Date(entry.tanggal);
-      const month = entryDate.getMonth(); // Get the month (0-11)
-      monthlyData[month] += 1; // Increment the count for the corresponding month
+      if (entry && entry.tanggal) {
+        const entryDate = new Date(entry.tanggal);
+        const month = entryDate.getMonth(); // Get the month (0-11)
+        monthlyData[month] += 1; // Increment the count for the corresponding month
+      }
     });
   
     return monthlyData;
@@ -349,6 +433,12 @@ const AdminDashboard = () => {
         beginAtZero: true,
       },
     },
+  };
+
+  // Helper function to safely count entries by category
+  const countEntriesByCategory = (categoryName) => {
+    if (!Array.isArray(entries)) return 0;
+    return entries.filter(entry => entry && entry.kategori === categoryName).length;
   };
 
   return (
@@ -477,18 +567,20 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold mb-2">Total Tamu</h3>
-              <p className="text-3xl font-bold text-blue-600">{entries.length}</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {Array.isArray(entries) ? entries.length : 0}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold mb-2">Tamu Umum</h3>
               <p className="text-3xl font-bold text-pink-600">
-                {entries.filter(entry => entry.kategori === 'UMUM').length}
+                {countEntriesByCategory('UMUM')}
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-lg font-semibold mb-2">Tamu Dinas</h3>
               <p className="text-3xl font-bold text-purple-600">
-                {entries.filter(entry => entry.kategori === 'DINAS').length}
+                {countEntriesByCategory('DINAS')}
               </p>
             </div>
           </div>
@@ -503,17 +595,27 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredEntries.length > 0 ? (
-                  filteredEntries.map((entry, index) => (
-                    <tr key={entry._id}>
+                {Array.isArray(filteredEntries) && filteredEntries.length > 0 ? (
+                  filteredEntries.slice(0, parseInt(entriesCount)).map((entry, index) => (
+                    <tr key={entry.id || index}>
                       <td>{index + 1}</td>
-                      <td>{entry.nama}</td>
-                      <td>{new Date(entry.tanggal).toLocaleString()}</td>
-                      <td>{entry.kategori}</td>
-                      <td>{entry.tujuan}</td>
-                      <td><img src={entry.tandaTangan} alt="Tanda Tangan" className='h-10 w-10 object-cover'/></td>
+                      <td>{entry.nama || 'N/A'}</td>
+                      <td>{entry.tanggal ? new Date(entry.tanggal).toLocaleString() : 'N/A'}</td>
+                      <td>{entry.kategori || 'N/A'}</td>
+                      <td>{entry.tujuan || 'N/A'}</td>
                       <td>
-                        <button onClick={() => handleDelete(entry._id)} className="btn btn-sm btn-danger">Hapus</button>
+                        {entry.tandaTangan ? 
+                          <img src={entry.tandaTangan} alt="Tanda Tangan" className='h-10 w-10 object-cover'/> : 
+                          'No Image'
+                        }
+                      </td>
+                      <td>
+                        <button 
+                          onClick={() => handleDelete(entry.id || entry._id)} 
+                          className="btn btn-sm btn-danger"
+                        >
+                          Hapus
+                        </button>
                       </td>
                     </tr>
                   ))
