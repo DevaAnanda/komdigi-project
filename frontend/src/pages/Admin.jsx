@@ -57,8 +57,14 @@ const AdminDashboard = () => {
   };
 
   const getDataByPeriod = (data, period) => {
+    if (!Array.isArray(data)) {
+      console.error('Data is not an array:', data);
+      return { umum: 0, dinas: 0 };
+    }
+
     const now = new Date();
     const filteredData = data.filter(entry => {
+      if (!entry || !entry.tanggal) return false;
       const entryDate = new Date(entry.tanggal);
       switch (period) {
         case 'hari':{
@@ -220,12 +226,17 @@ const AdminDashboard = () => {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-    
-        console.log('Fetched entries:', response.data); // Log data yang diterima
-        setEntries(response.data);
-        setFilteredEntries(response.data);
+      
+        console.log('Fetched entries:', response.data);
+        
+        // Add validation here
+        const entriesData = Array.isArray(response.data) ? response.data : [];
+        setEntries(entriesData);
+        setFilteredEntries(entriesData);
       } catch (error) {
         console.error('Error fetching entries:', error);
+        setEntries([]);
+        setFilteredEntries([]);
       }
     };
   
