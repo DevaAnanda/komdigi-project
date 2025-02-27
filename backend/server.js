@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
@@ -15,15 +14,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: 'https://komdigi-project.vercel.app', // Ganti dengan URL frontend Anda
 }));
-app.use(bodyParser.json());
+app.use(express.json()); // Menggunakan express.json() untuk parsing JSON
 
 // Inisialisasi Firebase Admin
-//const serviceAccount = require('./firebase-service-account.json');
-
-//const firebaseApp = initializeApp({
-//  credential: cert(serviceAccount)
-//});
-
 const firebaseApp = initializeApp({
   credential: cert({
     type: "service_account",
@@ -67,7 +60,7 @@ const generateToken = (id) => {
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+ if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -77,15 +70,13 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
       
-      req.user = { _id: userDoc .id, ...userDoc.data() };
+      req.user = { _id: userDoc.id, ...userDoc.data() };
       next();
     } catch (error) {
       console.error('Auth error:', error);
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
-  }
-
-  if (!token) {
+  } else {
     res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
@@ -209,7 +200,7 @@ app.get('/api/entries', protect, admin, async (req, res) => {
   try {
     const entriesSnapshot = await entriesCollection.orderBy('createdAt', 'desc').get();
     const entries = entriesSnapshot.docs.map(doc => ({
-      id: doc.id,
+      id : doc.id,
       ...doc.data()
     }));
     
@@ -222,7 +213,7 @@ app.get('/api/entries', protect, admin, async (req, res) => {
 
 app.delete('/api/entries/:id', protect, admin, async (req, res) => {
   try {
-    await entriesCollection.doc(req.params.id).delete ();
+    await entriesCollection.doc(req.params.id).delete();
     res.status(200).json({ message: 'Entry deleted successfully' });
   } catch (error) {
     console.error('Error deleting entry:', error);
