@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Ganti dengan URL backend Anda
+        target: 'https://komdigi-project-backend.vercel.app', // Ganti dengan URL backend Anda
         changeOrigin: true,
       },
     },
