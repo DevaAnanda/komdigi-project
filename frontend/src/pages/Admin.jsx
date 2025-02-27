@@ -220,7 +220,8 @@ const AdminDashboard = () => {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-  
+    
+        console.log('Fetched entries:', response.data); // Log data yang diterima
         setEntries(response.data);
         setFilteredEntries(response.data);
       } catch (error) {
@@ -233,7 +234,7 @@ const AdminDashboard = () => {
   
   const filterEntries = () => {
     let filtered = entries;
-
+  
     if (category) {
       filtered = filtered.filter(entry => entry.kategori.toLowerCase() === category.toLowerCase());
     }
@@ -243,14 +244,15 @@ const AdminDashboard = () => {
     if (endDate) {
       filtered = filtered.filter(entry => new Date(entry.tanggal) <= new Date(endDate));
     }
-
+  
     if (searchQuery) {
       filtered = filtered.filter(entry => 
         entry.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
         entry.tujuan.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
+  
+    console.log('Filtered entries:', filtered); // Log data yang difilter
     setFilteredEntries(filtered);
   };
 
