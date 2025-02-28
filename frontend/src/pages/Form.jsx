@@ -124,7 +124,7 @@ const Form = () => {
     e.preventDefault();
     console.log('Form Data:', formData); // Log data yang akan dikirim
     try {
-      const response = await axios.post('https://komdigi-project.vercel.app/api/register-guest', formData);
+      const response = await axios.post('https://komdigi-project-backend.vercel.app/api/register-guest', formData);
       console.log(response.data);
       navigate('/trimakasih');
     } catch (error) {

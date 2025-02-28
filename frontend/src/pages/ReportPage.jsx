@@ -19,7 +19,7 @@ const ReportPage = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await axios.get('https://komdigi-project.vercel.app/api/profile', {
+        const response = await axios.get('https://komdigi-project-backend.vercel.app/api/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -37,7 +37,7 @@ const ReportPage = () => {
 
   const fetchEntries = async () => {
     try {
-      const response = await axios.get('/api/entries', {
+      const response = await axios.get('https://komdigi-project-backend.vercel.app/api/entries', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
