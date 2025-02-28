@@ -19,7 +19,7 @@ const ReportPage = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await axios.get('/api/profile', {
+        const response = await axios.get('https://komdigi-project.vercel.app/api/profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
