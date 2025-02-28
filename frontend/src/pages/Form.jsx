@@ -122,12 +122,13 @@ const Form = () => {
   // Fungsi untuk submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form Data:', formData); // Log data yang akan dikirim
     try {
       const response = await axios.post('https://komdigi-project.vercel.app/api/register-guest', formData);
       console.log(response.data);
       navigate('/trimakasih');
     } catch (error) {
-      console.error(error);
+      console.error('Error submitting form:', error);
     }
   };
 
