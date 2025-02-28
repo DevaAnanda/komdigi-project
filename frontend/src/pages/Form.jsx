@@ -8,6 +8,8 @@ const Form = () => {
   const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   
   const [formData, setFormData] = useState({
     nama: "", 
@@ -122,12 +124,67 @@ const Form = () => {
   // Fungsi untuk submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage("");
+    
+    // Validate form
+    if (!formData.nama || !formData.tanggal || !formData.tujuan || !formData.tandaTangan) {
+      setErrorMessage("Harap isi semua bidang yang diperlukan dan tambahkan tanda tangan");
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
-      const response = await axios.post('https://komdigi-project.vercel.app/api/register-guest', formData);
+      // Configure axios with correct headers
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      };
+      
+      // Try using GET method instead if your API is configured to accept GET for this endpoint
+      // or try different endpoint if available
+      
+      // Option 1: Try original endpoint with modified headers
+      const response = await axios.post('https://komdigi-project.vercel.app/api/register-guest', formData, config);
+      
+      // Option 2: If Option 1 fails, we need to find the correct endpoint or method
+      // Uncomment and try one of these if the 405 error persists
+      
+      // const response = await axios.get('https://komdigi-project.vercel.app/api/register-guest', { params: formData });
+      // const response = await axios.put('https://komdigi-project.vercel.app/api/register-guest', formData, config);
+      // const response = await axios({
+      //   method: 'post',
+      //   url: 'https://komdigi-project.vercel.app/api/register-guest',
+      //   data: formData,
+      //   headers: { 'Content-Type': 'application/json' }
+      // });
+      
       console.log(response.data);
       navigate('/trimakasih');
     } catch (error) {
-      console.error(error);
+      console.error("Error details:", error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+        
+        if (error.response.status === 405) {
+          setErrorMessage("Kesalahan metode permintaan. Hubungi administrator sistem.");
+        } else {
+          setErrorMessage(`Error: ${error.response.status} - ${error.response.statusText || "Unknown error"}`);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        setErrorMessage("Tidak ada respons dari server. Periksa koneksi Anda.");
+      } else {
+        // Something happened in setting up the request
+        setErrorMessage(`Error: ${error.message}`);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,6 +211,13 @@ const Form = () => {
           </a>
           <h1 className="text-xl font-bold text-center text-white">BUKU TAMU DIGITAL</h1>
         </div>
+        
+        {errorMessage && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4 mb-4">
+            <span className="block sm:inline">{errorMessage}</span>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="mt-6">
           <div className="form-control mb-4">
             <label className="label-text text-white font-medium">Nama</label>
@@ -164,6 +228,7 @@ const Form = () => {
               onChange={handleChange}
               placeholder="Masukkan nama"
               className="input input-bordered input-netura"
+              required
             />
           </div>
           <div className="form-control mb-4">
@@ -185,6 +250,7 @@ const Form = () => {
               value={formData.tanggal}
               onChange={handleChange}
               className="input input-bordered"
+              required
             />
           </div>
           <div className="form-control mb-4">
@@ -195,6 +261,7 @@ const Form = () => {
               onChange={handleChange}
               placeholder="Masukkan maksud & tujuan"
               className="textarea textarea-bordered textarea-netural"
+              required
             ></textarea>
           </div>
           <div className="form-control mb-4">
@@ -221,12 +288,30 @@ const Form = () => {
               )}
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({
+                  nama: "", 
+                  instansi: "",
+                  tanggal: "",
+                  tujuan: "",
+                  kategori: "UMUM",
+                  tandaTangan: "",
+                });
+                setErrorMessage("");
+              }}
+              className="border border-white text-white bg-transparent hover:bg-gray-800 hover:text-white transition duration-300 ease-in-out py-2 px-4 rounded"
+            >
+              Reset Form
+            </button>
             <button
               type="submit"
               className="border border-white text-white bg-transparent hover:bg-gray-800 hover:text-white transition duration-300 ease-in-out py-2 px-4 rounded"
+              disabled={isSubmitting}
             >
-              Kirim
+              {isSubmitting ? "Mengirim..." : "Kirim"}
             </button>
           </div>
         </form>
